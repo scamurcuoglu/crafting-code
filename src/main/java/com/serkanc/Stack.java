@@ -11,10 +11,10 @@ public class Stack {
         if (list.isEmpty()) {
             throw new EmptyStackException();
         }
-        return list.removeLast();
+        return list.removeFirst();
     }
 
     public void push(Object item) {
-        list.add(item);
+        list.addFirst(item);
     }
 }
