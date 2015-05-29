@@ -3,7 +3,6 @@ package com.serkanc;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 public class PaymentServiceShould {
@@ -11,7 +10,8 @@ public class PaymentServiceShould {
     private UserValidator userValidator;
     private PaymentProcessor paymentProcessor;
     private PaymentService paymentService;
-    private User ANY_USER;
+    private User SOME_USER;
+    private PaymentDetails paymentDetails;
 
     @Before
     public void setUp() throws Exception {
@@ -20,25 +20,26 @@ public class PaymentServiceShould {
 
         paymentService = new PaymentService(userValidator, paymentProcessor);
 
-        ANY_USER = new User();
+        SOME_USER = new User();
+        paymentDetails = new PaymentDetails();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_an_exception_when_the_user_is_invalid() throws Exception {
 
-        when(userValidator.isValid(any(User.class))).thenReturn(false);
+        when(userValidator.isValid(SOME_USER)).thenReturn(false);
 
-        paymentService.processPayment(ANY_USER, new PaymentDetails());
+        paymentService.processPayment(SOME_USER, new PaymentDetails());
     }
 
     @Test
     public void call_payment_processor_when_user_is_valid() throws Exception {
 
-        when(userValidator.isValid(any(User.class))).thenReturn(true);
+        when(userValidator.isValid(SOME_USER)).thenReturn(true);
 
-        PaymentDetails paymentDetails = new PaymentDetails();
-        paymentService.processPayment(ANY_USER, paymentDetails);
+        paymentService.processPayment(SOME_USER, paymentDetails);
 
+        verify(userValidator).isValid(SOME_USER);
         verify(paymentProcessor).processPayment(paymentDetails);
     }
 }
