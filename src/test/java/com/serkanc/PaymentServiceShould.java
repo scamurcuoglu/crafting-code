@@ -3,6 +3,8 @@ package com.serkanc;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 public class PaymentServiceShould {
@@ -10,8 +12,9 @@ public class PaymentServiceShould {
     private UserValidator userValidator;
     private PaymentProcessor paymentProcessor;
     private PaymentService paymentService;
-    private User SOME_USER;
-    private PaymentDetails paymentDetails;
+    private User VALID_USER = new User();
+    private User INVALID_USER = new User();
+    private PaymentDetails paymentDetails = new PaymentDetails();
 
     @Before
     public void setUp() throws Exception {
@@ -19,27 +22,39 @@ public class PaymentServiceShould {
         paymentProcessor = mock(PaymentProcessor.class);
 
         paymentService = new PaymentService(userValidator, paymentProcessor);
-
-        SOME_USER = new User();
-        paymentDetails = new PaymentDetails();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_an_exception_when_the_user_is_invalid() throws Exception {
 
-        when(userValidator.isValid(SOME_USER)).thenReturn(false);
+        given(userValidator.isValid(INVALID_USER)).willReturn(false);
 
-        paymentService.processPayment(SOME_USER, new PaymentDetails());
+        paymentService.processPayment(INVALID_USER, new PaymentDetails());
+    }
+
+    @Test
+    public void
+    not_invoke_payment_processor_when_user_is_invalid() {
+
+        given(userValidator.isValid(INVALID_USER)).willReturn(false);
+
+        try {
+            paymentService.processPayment(INVALID_USER, paymentDetails);
+            fail("should have thrown an exception");
+        }
+        catch (Exception e) {
+            verifyZeroInteractions(paymentProcessor);
+        }
     }
 
     @Test
     public void call_payment_processor_when_user_is_valid() throws Exception {
 
-        when(userValidator.isValid(SOME_USER)).thenReturn(true);
+        when(userValidator.isValid(VALID_USER)).thenReturn(true);
 
-        paymentService.processPayment(SOME_USER, paymentDetails);
+        paymentService.processPayment(VALID_USER, paymentDetails);
 
-        verify(userValidator).isValid(SOME_USER);
+        verify(userValidator).isValid(VALID_USER);
         verify(paymentProcessor).processPayment(paymentDetails);
     }
 }
